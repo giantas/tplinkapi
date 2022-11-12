@@ -61,20 +61,20 @@ func (service RouterService) GetHeaders() http.Header {
 
 func (service RouterService) Logout() error {
 	path := service.GetAPIURL("8")
-	_, err := service.makeRequest(http.MethodPost, path, RequestLogout)
+	_, err := service.makeRequest(path, RequestLogout)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (service RouterService) makeRequest(method string, path string, body string) (string, error) {
+func (service RouterService) makeRequest(path string, body string) (string, error) {
 	var (
 		response string
 		err      error
 	)
 
-	req, err := http.NewRequest(method, path, strings.NewReader(body))
+	req, err := http.NewRequest(http.MethodPost, path, strings.NewReader(body))
 	if err != nil {
 		return response, err
 	}
@@ -120,7 +120,7 @@ func (service RouterService) GetRouterInfo() (RouterInfo, error) {
 		err  error
 	)
 	path := service.GetAPIURL("1&1&1&8")
-	body, err := service.makeRequest(http.MethodPost, path, RequestGetRouterInfo)
+	body, err := service.makeRequest(path, RequestGetRouterInfo)
 	if err != nil {
 		return info, err
 	}
@@ -133,7 +133,7 @@ func (service RouterService) GetClientInfo() (Client, error) {
 		err    error
 	)
 	path := service.GetAPIURL("1&1&1&8")
-	body, err := service.makeRequest(http.MethodPost, path, RequestGetRouterInfo)
+	body, err := service.makeRequest(path, RequestGetRouterInfo)
 	if err != nil {
 		return client, err
 	}
@@ -146,7 +146,7 @@ func (service RouterService) GetStatistics() (ClientStatistics, error) {
 		err   error
 	)
 	path := service.GetAPIURL("1&5")
-	body, err := service.makeRequest(http.MethodPost, path, RequestStatistics)
+	body, err := service.makeRequest(path, RequestStatistics)
 	if err != nil {
 		return stats, err
 	}
@@ -156,7 +156,7 @@ func (service RouterService) GetStatistics() (ClientStatistics, error) {
 func (service RouterService) GetAddressReservations() ([]ClientReservation, error) {
 	reservations := make([]ClientReservation, 0)
 	path := service.GetAPIURL("5")
-	body, err := service.makeRequest(http.MethodPost, path, RequestAddressReservation)
+	body, err := service.makeRequest(path, RequestAddressReservation)
 	if err != nil {
 		return reservations, err
 	}
@@ -166,7 +166,7 @@ func (service RouterService) GetAddressReservations() ([]ClientReservation, erro
 func (service RouterService) GetIpMacBindings() ([]ClientReservation, error) {
 	reservations := make([]ClientReservation, 0)
 	path := service.GetAPIURL("1&5")
-	body, err := service.makeRequest(http.MethodPost, path, RequestIpMacBinding)
+	body, err := service.makeRequest(path, RequestIpMacBinding)
 	if err != nil {
 		return reservations, err
 	}
@@ -176,14 +176,14 @@ func (service RouterService) GetIpMacBindings() ([]ClientReservation, error) {
 func (service RouterService) makeDhcpReservation(client Client) error {
 	body := fmt.Sprintf(RequestMakeDhcpReservation, client.Mac, client.IP)
 	path := service.GetAPIURL("3")
-	_, err := service.makeRequest(http.MethodPost, path, body)
+	_, err := service.makeRequest(path, body)
 	return err
 }
 
 func (service RouterService) makeIpMacBinding(client Client) error {
 	body := fmt.Sprintf(RequestMakeIpMacBinding, client.IpAsInt(), client.Mac)
 	path := service.GetAPIURL("3")
-	_, err := service.makeRequest(http.MethodPost, path, body)
+	_, err := service.makeRequest(path, body)
 	return err
 }
 
@@ -215,7 +215,7 @@ func (service RouterService) deleteDhcpReservation(macAddress string) error {
 
 	body := fmt.Sprintf(RequestDeleteDhcpReservation, id)
 	path := service.GetAPIURL("4")
-	_, err = service.makeRequest(http.MethodPost, path, body)
+	_, err = service.makeRequest(path, body)
 	return err
 }
 
@@ -239,7 +239,7 @@ func (service RouterService) deleteIpMacBinding(macAddress string) error {
 
 	body := fmt.Sprintf(RequestDeleteIpMacBinding, id)
 	path := service.GetAPIURL("4")
-	_, err = service.makeRequest(http.MethodPost, path, body)
+	_, err = service.makeRequest(path, body)
 	return err
 }
 
@@ -254,7 +254,7 @@ func (service RouterService) DeleteIpAddressReservation(macAddress string) error
 func (service RouterService) GetBandwidthControlDetails() (BandwidthControlDetail, error) {
 	var config BandwidthControlDetail
 	path := service.GetAPIURL("1&5&5")
-	body, err := service.makeRequest(http.MethodPost, path, RequestBwControlInfo)
+	body, err := service.makeRequest(path, RequestBwControlInfo)
 	if err != nil {
 		return config, err
 	}
@@ -268,7 +268,7 @@ func (service RouterService) ToggleBandwidthControl(config BandwidthControlDetai
 	}
 	body := fmt.Sprintf(RequestToggleBandwidthControl, enable, config.UpTotal, config.DownTotal)
 	path := service.GetAPIURL("2")
-	_, err := service.makeRequest(http.MethodPost, path, body)
+	_, err := service.makeRequest(path, body)
 	return err
 }
 
@@ -285,7 +285,7 @@ func (service RouterService) AddBwControlEntry(entry BandwidthControlEntry) (int
 		RequestAddBwControlEntry, startIp, endIp, entry.UpMin, entry.UpMax, entry.DownMin, entry.DownMax,
 	)
 	path := service.GetAPIURL("3")
-	res, err := service.makeRequest(http.MethodPost, path, body)
+	res, err := service.makeRequest(path, body)
 	if err != nil {
 		return 0, err
 	}
@@ -310,6 +310,6 @@ func (service RouterService) DeleteBwControlEntry(entryId int) error {
 
 	body := fmt.Sprintf(RequestDeleteBwControlEntry, entryId)
 	path := service.GetAPIURL("4")
-	_, err = service.makeRequest(http.MethodPost, path, body)
+	_, err = service.makeRequest(path, body)
 	return err
 }
