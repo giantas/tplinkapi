@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/binary"
 	"fmt"
-	"net"
 	"regexp"
 	"strconv"
 	"strings"
@@ -20,6 +18,7 @@ var (
 	ipMacBindingRegex       = regexp.MustCompile(`\[(\d+)\,.+\]\d\nstate=(\d)\nip=(\d+)\nmac=([\w\:]+)`)
 	bwControlEntryRegex     = regexp.MustCompile(`\[(\d+)\,.*\]\d\n.+\nenable\=(\d)\nstartIP\=(\d+)\nendIP\=(\d+)\n.+\n.+\n.+\n.+\nupMinBW\=(\d+)\nupMaxBW\=(\d+)\ndownMinBW\=(\d+)\ndownMaxBW\=(\d+)\n`)
 	bwControlConfigRegex    = regexp.MustCompile(`enable\=(\d)\nlinkType\=\d\nupTotalBW\=(\d+)\ndownTotalBW\=(\d+)`)
+	getIdRegex              = regexp.MustCompile(`\[(\d+)\,[\,0]+\]`)
 )
 
 type Storage int64
@@ -197,26 +196,11 @@ func ParseBandwidthControlInfo(body string) (BandwidthControlDetail, error) {
 	return config, err
 }
 
-func HasError(body string) error {
-	error := errorRegex.FindStringSubmatch(body)
-	errorString := strings.TrimSpace(error[1])
-	if errorString == "0" {
-		return nil
+func GetId(body string) (int, error) {
+	matches := getIdRegex.FindStringSubmatch(body)
+	if len(matches) == 0 {
+		return 0, fmt.Errorf("id not found")
 	}
-	return fmt.Errorf("error %s", errorString)
-}
-
-func ipToString(value string) (string, error) {
-	ipInt, err := strconv.Atoi(value)
-	if err != nil {
-		return "", err
-	}
-	ip := int2ip(uint32(ipInt))
-	return ip.String(), err
-}
-
-func int2ip(nn uint32) net.IP {
-	ip := make(net.IP, 4)
-	binary.BigEndian.PutUint32(ip, nn)
-	return ip
+	stringId := matches[1]
+	return strconv.Atoi(stringId)
 }

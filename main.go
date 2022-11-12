@@ -98,6 +98,26 @@ func main() {
 	// 	exitWithError(err)
 	// }
 
+	// entry := BandwidthControlEntry{
+	// 	Enabled: true,
+	// 	StartIp: "192.168.0.251",
+	// 	EndIp:   "192.168.0.254",
+	// 	UpMin:   100,
+	// 	UpMax:   150,
+	// 	DownMin: 100,
+	// 	DownMax: 150,
+	// }
+	// id, err := AddBwControlEntry(Service, entry)
+	// if err != nil {
+	// 	exitWithError(err)
+	// }
+	// fmt.Printf("Entry added with id %d\n", id)
+
+	// err := DeleteBwControlEntry(Service, 15)
+	// if err != nil {
+	// 	exitWithError(err)
+	// }
+
 	// err = Service.Logout()
 	// if err != nil {
 	// 	exitWithError(err)

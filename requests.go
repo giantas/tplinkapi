@@ -178,3 +178,43 @@ func ToggleBandwidthControl(service RouterService, config BandwidthControlDetail
 	_, err := service.makeRequest(http.MethodPost, path, body)
 	return err
 }
+
+func AddBwControlEntry(service RouterService, entry BandwidthControlEntry) (int, error) {
+	startIp, err := ip2Int(entry.StartIp)
+	if err != nil {
+		return 0, err
+	}
+	endIp, err := ip2Int(entry.EndIp)
+	if err != nil {
+		return 0, err
+	}
+	body := fmt.Sprintf(
+		"[TC_RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,12\r\nenable=1\r\nstartIP=%d\r\nendIP=%d\r\nstartPort=0\r\nendPort=0\r\nprotocol=0\r\nprecedence=5\r\nupMinBW=%d\r\nupMaxBW=%d\r\ndownMinBW=%d\r\ndownMaxBW=%d\r\nflag=1\r\n",
+		startIp, endIp, entry.UpMin, entry.UpMax, entry.DownMin, entry.DownMax,
+	)
+	path := service.GetAPIURL("3")
+	res, err := service.makeRequest(http.MethodPost, path, body)
+	return GetId(res)
+}
+
+func DeleteBwControlEntry(service RouterService, entryId int) error {
+	details, err := GetBandwidthControlDetails(service)
+	if err != nil {
+		return err
+	}
+	exists := false
+	for _, entry := range details.Entries {
+		if entry.Id == entryId {
+			exists = true
+			break
+		}
+	}
+	if !exists {
+		return fmt.Errorf("entry with id %d not found", entryId)
+	}
+
+	body := fmt.Sprintf("[TC_RULE#%d,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n", entryId)
+	path := service.GetAPIURL("4")
+	_, err = service.makeRequest(http.MethodPost, path, body)
+	return err
+}
