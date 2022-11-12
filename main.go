@@ -14,19 +14,19 @@ var (
 )
 
 func main() {
-	routerInfo, err := GetRouterInfo(Service)
+	routerInfo, err := Service.GetRouterInfo()
 	if err != nil {
 		exitWithError(err)
 	}
 	fmt.Printf("Info: %+v\n", routerInfo)
 
-	// clientInfo, err := GetClientInfo(Service)
+	// clientInfo, err := Service.GetClientInfo()
 	// if err != nil {
 	// 	exitWithError(err)
 	// }
 	// fmt.Printf("Info: %+v\n", clientInfo)
 
-	// stats, err := GetStatistics(Service)
+	// stats, err := Service.GetStatistics()
 	// if err != nil {
 	// 	exitWithError(err)
 	// }
@@ -35,7 +35,7 @@ func main() {
 	// 	fmt.Printf("IP: %s Mac: %s Usage: %f\n", client.IP, client.Mac, client.BytesIn(MB))
 	// }
 
-	// reservations, err := GetAddressReservations(Service)
+	// reservations, err := Service.GetAddressReservations()
 	// if err != nil {
 	// 	exitWithError(err)
 	// }
@@ -44,7 +44,7 @@ func main() {
 	// 	fmt.Printf("Id: %d IP: %s Mac: %s Enabled: %v\n", r.Id, r.IP, r.Mac, r.Enabled)
 	// }
 
-	// reservations, err := GetIpMacBindings(Service)
+	// reservations, err := Service.GetIpMacBindings()
 	// if err != nil {
 	// 	exitWithError(err)
 	// }
@@ -57,17 +57,17 @@ func main() {
 	// 	IP:  "192.168.0.186",
 	// 	Mac: "F2:28:A9:A4:75:6C",
 	// }
-	// err := MakeIpAddressReservation(Service, client)
+	// err := Service.MakeIpAddressReservation(client)
 	// if err != nil {
 	// 	exitWithError(err)
 	// }
 
-	// err := DeleteIpAddressReservation(Service, client.Mac)
+	// err := Service.DeleteIpAddressReservation(client.Mac)
 	// if err != nil {
 	// 	exitWithError(err)
 	// }
 
-	// bwControl, err := GetBandwidthControlDetails(Service)
+	// bwControl, err := Service.GetBandwidthControlDetails()
 	// if err != nil {
 	// 	exitWithError(err)
 	// }
@@ -87,7 +87,7 @@ func main() {
 	// 	UpTotal:   80000,
 	// 	DownTotal: 80000,
 	// }
-	// err := ToggleBandwidthControl(Service, config)
+	// err := Service.ToggleBandwidthControl(config)
 	// if err != nil {
 	// 	exitWithError(err)
 	// }
@@ -101,13 +101,13 @@ func main() {
 	// 	DownMin: 100,
 	// 	DownMax: 150,
 	// }
-	// id, err := AddBwControlEntry(Service, entry)
+	// id, err := Service.AddBwControlEntry(entry)
 	// if err != nil {
 	// 	exitWithError(err)
 	// }
 	// fmt.Printf("Entry added with id %d\n", id)
 
-	// err := DeleteBwControlEntry(Service, 15)
+	// err := Service.DeleteBwControlEntry(15)
 	// if err != nil {
 	// 	exitWithError(err)
 	// }

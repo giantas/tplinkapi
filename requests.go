@@ -30,45 +30,45 @@ type RouterService struct {
 	Address  string
 }
 
-func (router RouterService) GetAPIURL(params string) string {
-	path := router.Address + "/cgi"
+func (service RouterService) GetAPIURL(params string) string {
+	path := service.Address + "/cgi"
 	if params != "" {
 		path = path + "?" + params
 	}
 	return path
 }
 
-func (router RouterService) basicAuth(username, password string) string {
+func (service RouterService) basicAuth(username, password string) string {
 	auth := fmt.Sprintf("%s:%s", username, password)
 	return base64.StdEncoding.EncodeToString([]byte(auth))
 }
 
-func (router RouterService) GetAuthHeader() string {
-	return "Basic " + router.basicAuth(router.Username, router.Password)
+func (service RouterService) GetAuthHeader() string {
+	return "Basic " + service.basicAuth(service.Username, service.Password)
 }
 
-func (router RouterService) GetHeaders() http.Header {
+func (service RouterService) GetHeaders() http.Header {
 	return http.Header{
 		"Accept":          {"*/*"},
 		"Accept-Language": {"en-US,en;q=0.9"},
 		"Content-Type":    {"text/plain"},
 		"Dnt":             {"1"},
-		"Origin":          {router.Address},
-		"Referer":         {router.Address + "/"},
+		"Origin":          {service.Address},
+		"Referer":         {service.Address + "/"},
 		"User-Agent":      {"tplinkapi"},
 	}
 }
 
-func (router RouterService) Logout() error {
-	path := router.GetAPIURL("8")
-	_, err := router.makeRequest(http.MethodPost, path, RequestLogout)
+func (service RouterService) Logout() error {
+	path := service.GetAPIURL("8")
+	_, err := service.makeRequest(http.MethodPost, path, RequestLogout)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (router RouterService) makeRequest(method string, path string, body string) (string, error) {
+func (service RouterService) makeRequest(method string, path string, body string) (string, error) {
 	var (
 		response string
 		err      error
@@ -79,10 +79,10 @@ func (router RouterService) makeRequest(method string, path string, body string)
 		return response, err
 	}
 
-	req.Header = router.GetHeaders()
+	req.Header = service.GetHeaders()
 
 	// req.AddCookie sanitizes the value rendering it unreadable by the server
-	req.Header.Set("Cookie", fmt.Sprintf("Authorization=%s", router.GetAuthHeader()))
+	req.Header.Set("Cookie", fmt.Sprintf("Authorization=%s", service.GetAuthHeader()))
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -114,7 +114,7 @@ func (router RouterService) makeRequest(method string, path string, body string)
 	return bodyText, err
 }
 
-func GetRouterInfo(service RouterService) (RouterInfo, error) {
+func (service RouterService) GetRouterInfo() (RouterInfo, error) {
 	var (
 		info RouterInfo
 		err  error
@@ -127,7 +127,7 @@ func GetRouterInfo(service RouterService) (RouterInfo, error) {
 	return ParseRouterInfo(body)
 }
 
-func GetClientInfo(service RouterService) (Client, error) {
+func (service RouterService) GetClientInfo() (Client, error) {
 	var (
 		client Client
 		err    error
@@ -140,7 +140,7 @@ func GetClientInfo(service RouterService) (Client, error) {
 	return ParseClient(body)
 }
 
-func GetStatistics(service RouterService) (ClientStatistics, error) {
+func (service RouterService) GetStatistics() (ClientStatistics, error) {
 	var (
 		stats ClientStatistics
 		err   error
@@ -153,7 +153,7 @@ func GetStatistics(service RouterService) (ClientStatistics, error) {
 	return ParseStatistics(body)
 }
 
-func GetAddressReservations(service RouterService) ([]ClientReservation, error) {
+func (service RouterService) GetAddressReservations() ([]ClientReservation, error) {
 	reservations := make([]ClientReservation, 0)
 	path := service.GetAPIURL("5")
 	body, err := service.makeRequest(http.MethodPost, path, RequestAddressReservation)
@@ -163,7 +163,7 @@ func GetAddressReservations(service RouterService) ([]ClientReservation, error) 
 	return ParseReservations(body)
 }
 
-func GetIpMacBindings(service RouterService) ([]ClientReservation, error) {
+func (service RouterService) GetIpMacBindings() ([]ClientReservation, error) {
 	reservations := make([]ClientReservation, 0)
 	path := service.GetAPIURL("1&5")
 	body, err := service.makeRequest(http.MethodPost, path, RequestIpMacBinding)
@@ -173,30 +173,30 @@ func GetIpMacBindings(service RouterService) ([]ClientReservation, error) {
 	return ParseIpMacBinding(body)
 }
 
-func makeDhcpReservation(service RouterService, client Client) error {
+func (service RouterService) makeDhcpReservation(client Client) error {
 	body := fmt.Sprintf(RequestMakeDhcpReservation, client.Mac, client.IP)
 	path := service.GetAPIURL("3")
 	_, err := service.makeRequest(http.MethodPost, path, body)
 	return err
 }
 
-func makeIpMacBinding(service RouterService, client Client) error {
+func (service RouterService) makeIpMacBinding(client Client) error {
 	body := fmt.Sprintf(RequestMakeIpMacBinding, client.IpAsInt(), client.Mac)
 	path := service.GetAPIURL("3")
 	_, err := service.makeRequest(http.MethodPost, path, body)
 	return err
 }
 
-func MakeIpAddressReservation(service RouterService, client Client) error {
-	err := makeDhcpReservation(service, client)
+func (service RouterService) MakeIpAddressReservation(client Client) error {
+	err := service.makeDhcpReservation(client)
 	if err != nil {
 		return err
 	}
-	return makeIpMacBinding(service, client)
+	return service.makeIpMacBinding(client)
 }
 
-func deleteDhcpReservation(service RouterService, macAddress string) error {
-	reservations, err := GetAddressReservations(service)
+func (service RouterService) deleteDhcpReservation(macAddress string) error {
+	reservations, err := service.GetAddressReservations()
 	if err != nil {
 		return err
 	}
@@ -219,8 +219,8 @@ func deleteDhcpReservation(service RouterService, macAddress string) error {
 	return err
 }
 
-func deleteIpMacBinding(service RouterService, macAddress string) error {
-	reservations, err := GetIpMacBindings(service)
+func (service RouterService) deleteIpMacBinding(macAddress string) error {
+	reservations, err := service.GetIpMacBindings()
 	if err != nil {
 		return err
 	}
@@ -243,15 +243,15 @@ func deleteIpMacBinding(service RouterService, macAddress string) error {
 	return err
 }
 
-func DeleteIpAddressReservation(service RouterService, macAddress string) error {
-	err := deleteDhcpReservation(service, macAddress)
+func (service RouterService) DeleteIpAddressReservation(macAddress string) error {
+	err := service.deleteDhcpReservation(macAddress)
 	if err != nil {
 		return err
 	}
-	return deleteIpMacBinding(service, macAddress)
+	return service.deleteIpMacBinding(macAddress)
 }
 
-func GetBandwidthControlDetails(service RouterService) (BandwidthControlDetail, error) {
+func (service RouterService) GetBandwidthControlDetails() (BandwidthControlDetail, error) {
 	var config BandwidthControlDetail
 	path := service.GetAPIURL("1&5&5")
 	body, err := service.makeRequest(http.MethodPost, path, RequestBwControlInfo)
@@ -261,7 +261,7 @@ func GetBandwidthControlDetails(service RouterService) (BandwidthControlDetail, 
 	return ParseBandwidthControlInfo(body)
 }
 
-func ToggleBandwidthControl(service RouterService, config BandwidthControlDetail) error {
+func (service RouterService) ToggleBandwidthControl(config BandwidthControlDetail) error {
 	enable := 0
 	if config.Enabled {
 		enable = 3
@@ -272,7 +272,7 @@ func ToggleBandwidthControl(service RouterService, config BandwidthControlDetail
 	return err
 }
 
-func AddBwControlEntry(service RouterService, entry BandwidthControlEntry) (int, error) {
+func (service RouterService) AddBwControlEntry(entry BandwidthControlEntry) (int, error) {
 	startIp, err := ip2Int(entry.StartIp)
 	if err != nil {
 		return 0, err
@@ -292,8 +292,8 @@ func AddBwControlEntry(service RouterService, entry BandwidthControlEntry) (int,
 	return GetId(res)
 }
 
-func DeleteBwControlEntry(service RouterService, entryId int) error {
-	details, err := GetBandwidthControlDetails(service)
+func (service RouterService) DeleteBwControlEntry(entryId int) error {
+	details, err := service.GetBandwidthControlDetails()
 	if err != nil {
 		return err
 	}
