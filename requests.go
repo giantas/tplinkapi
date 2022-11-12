@@ -1,8 +1,13 @@
 package main
 
 import (
+	"crypto/tls"
+	"encoding/base64"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
+	"time"
 )
 
 var RequestGetRouterInfo = "[IGD_DEV_INFO#0,0,0,0,0,0#0,0,0,0,0,0]0,4\r\nmodelName\r\ndescription\r\nX_TP_isFD\r\nX_TP_ProductVersion\r\n[ETH_SWITCH#0,0,0,0,0,0#0,0,0,0,0,0]1,1\r\nnumberOfVirtualPorts\r\n[MULTIMODE#0,0,0,0,0,0#0,0,0,0,0,0]2,1\r\nmode\r\n[/cgi/info#0,0,0,0,0,0#0,0,0,0,0,0]3,0\r\n"
@@ -18,6 +23,96 @@ var RequestDeleteDhcpReservation = "[LAN_DHCP_STATIC_ADDR#1,%d,0,0,0,0#0,0,0,0,0
 var RequestDeleteIpMacBinding = "[ARP_BIND_ENTRY#%d,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
 var RequestMakeIpMacBinding = "[ARP_BIND_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\nstate=1\r\nip=%d\r\nmac=%s\r\n"
 var RequestMakeDhcpReservation = "[LAN_DHCP_STATIC_ADDR#0,0,0,0,0,0#1,0,0,0,0,0]0,3\r\nchaddr=%s\r\nyiaddr=%s\r\nenable=1\r\n"
+
+type RouterService struct {
+	Username string
+	Password string
+	Address  string
+}
+
+func (router RouterService) GetAPIURL(params string) string {
+	path := router.Address + "/cgi"
+	if params != "" {
+		path = path + "?" + params
+	}
+	return path
+}
+
+func (router RouterService) basicAuth(username, password string) string {
+	auth := fmt.Sprintf("%s:%s", username, password)
+	return base64.StdEncoding.EncodeToString([]byte(auth))
+}
+
+func (router RouterService) GetAuthHeader() string {
+	return "Basic " + router.basicAuth(router.Username, router.Password)
+}
+
+func (router RouterService) GetHeaders() http.Header {
+	return http.Header{
+		"Accept":          {"*/*"},
+		"Accept-Language": {"en-US,en;q=0.9"},
+		"Content-Type":    {"text/plain"},
+		"Dnt":             {"1"},
+		"Origin":          {router.Address},
+		"Referer":         {router.Address + "/"},
+		"User-Agent":      {"tplinkapi"},
+	}
+}
+
+func (router RouterService) Logout() error {
+	path := router.GetAPIURL("8")
+	_, err := router.makeRequest(http.MethodPost, path, RequestLogout)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (router RouterService) makeRequest(method string, path string, body string) (string, error) {
+	var (
+		response string
+		err      error
+	)
+
+	req, err := http.NewRequest(method, path, strings.NewReader(body))
+	if err != nil {
+		return response, err
+	}
+
+	req.Header = router.GetHeaders()
+
+	// req.AddCookie sanitizes the value rendering it unreadable by the server
+	req.Header.Set("Cookie", fmt.Sprintf("Authorization=%s", router.GetAuthHeader()))
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	client := http.Client{
+		Timeout:   10 * time.Second,
+		Transport: tr,
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return response, err
+	}
+
+	defer res.Body.Close()
+
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return response, err
+	}
+
+	bodyText := string(bodyBytes)
+	if res.StatusCode != 200 {
+		err = fmt.Errorf(res.Status)
+		return bodyText, err
+	}
+
+	err = HasError(bodyText)
+	return bodyText, err
+}
 
 func GetRouterInfo(service RouterService) (RouterInfo, error) {
 	var (

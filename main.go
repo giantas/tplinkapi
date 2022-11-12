@@ -1,14 +1,8 @@
 package main
 
 import (
-	"crypto/tls"
-	"encoding/base64"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
-	"strings"
-	"time"
 )
 
 var (
@@ -122,96 +116,6 @@ func main() {
 	// if err != nil {
 	// 	exitWithError(err)
 	// }
-}
-
-type RouterService struct {
-	Username string
-	Password string
-	Address  string
-}
-
-func (router RouterService) GetAPIURL(params string) string {
-	path := router.Address + "/cgi"
-	if params != "" {
-		path = path + "?" + params
-	}
-	return path
-}
-
-func (router RouterService) basicAuth(username, password string) string {
-	auth := fmt.Sprintf("%s:%s", username, password)
-	return base64.StdEncoding.EncodeToString([]byte(auth))
-}
-
-func (router RouterService) GetAuthHeader() string {
-	return "Basic " + router.basicAuth(router.Username, router.Password)
-}
-
-func (router RouterService) GetHeaders() http.Header {
-	return http.Header{
-		"Accept":          {"*/*"},
-		"Accept-Language": {"en-US,en;q=0.9"},
-		"Content-Type":    {"text/plain"},
-		"Dnt":             {"1"},
-		"Origin":          {router.Address},
-		"Referer":         {router.Address + "/"},
-		"User-Agent":      {"tplinkapi"},
-	}
-}
-
-func (router RouterService) Logout() error {
-	path := router.GetAPIURL("8")
-	_, err := router.makeRequest(http.MethodPost, path, RequestLogout)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (router RouterService) makeRequest(method string, path string, body string) (string, error) {
-	var (
-		response string
-		err      error
-	)
-
-	req, err := http.NewRequest(method, path, strings.NewReader(body))
-	if err != nil {
-		return response, err
-	}
-
-	req.Header = router.GetHeaders()
-
-	// req.AddCookie sanitizes the value rendering it unreadable by the server
-	req.Header.Set("Cookie", fmt.Sprintf("Authorization=%s", router.GetAuthHeader()))
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-
-	client := http.Client{
-		Timeout:   10 * time.Second,
-		Transport: tr,
-	}
-	res, err := client.Do(req)
-	if err != nil {
-		return response, err
-	}
-
-	defer res.Body.Close()
-
-	bodyBytes, err := io.ReadAll(res.Body)
-	if err != nil {
-		return response, err
-	}
-
-	bodyText := string(bodyBytes)
-	if res.StatusCode != 200 {
-		err = fmt.Errorf(res.Status)
-		return bodyText, err
-	}
-
-	err = HasError(bodyText)
-	return bodyText, err
 }
 
 func exitWithError(err error) {
