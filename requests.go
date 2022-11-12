@@ -194,6 +194,9 @@ func AddBwControlEntry(service RouterService, entry BandwidthControlEntry) (int,
 	)
 	path := service.GetAPIURL("3")
 	res, err := service.makeRequest(http.MethodPost, path, body)
+	if err != nil {
+		return 0, err
+	}
 	return GetId(res)
 }
 
