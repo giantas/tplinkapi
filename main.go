@@ -161,7 +161,7 @@ func (router RouterService) GetHeaders() http.Header {
 
 func (router RouterService) Logout() error {
 	path := router.GetAPIURL("8")
-	_, err := router.makeRequest(http.MethodPost, path, LogoutBody)
+	_, err := router.makeRequest(http.MethodPost, path, RequestLogout)
 	if err != nil {
 		return err
 	}

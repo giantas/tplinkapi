@@ -5,12 +5,19 @@ import (
 	"net/http"
 )
 
-var GetRouterInfoBody = "[IGD_DEV_INFO#0,0,0,0,0,0#0,0,0,0,0,0]0,4\r\nmodelName\r\ndescription\r\nX_TP_isFD\r\nX_TP_ProductVersion\r\n[ETH_SWITCH#0,0,0,0,0,0#0,0,0,0,0,0]1,1\r\nnumberOfVirtualPorts\r\n[MULTIMODE#0,0,0,0,0,0#0,0,0,0,0,0]2,1\r\nmode\r\n[/cgi/info#0,0,0,0,0,0#0,0,0,0,0,0]3,0\r\n"
-var LogoutBody = "[/cgi/logout#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
-var StatisticsBody = "[STAT_CFG#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[STAT_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]1,0\r\n"
+var RequestGetRouterInfo = "[IGD_DEV_INFO#0,0,0,0,0,0#0,0,0,0,0,0]0,4\r\nmodelName\r\ndescription\r\nX_TP_isFD\r\nX_TP_ProductVersion\r\n[ETH_SWITCH#0,0,0,0,0,0#0,0,0,0,0,0]1,1\r\nnumberOfVirtualPorts\r\n[MULTIMODE#0,0,0,0,0,0#0,0,0,0,0,0]2,1\r\nmode\r\n[/cgi/info#0,0,0,0,0,0#0,0,0,0,0,0]3,0\r\n"
+var RequestLogout = "[/cgi/logout#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+var RequestStatistics = "[STAT_CFG#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[STAT_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]1,0\r\n"
 var RequestAddressReservation = "[LAN_DHCP_STATIC_ADDR#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\nenable\r\nchaddr\r\nyiaddr\r\n"
 var RequestIpMacBinding = "[ARP_BIND#0,0,0,0,0,0#0,0,0,0,0,0]0,1\r\nenable\r\n[ARP_BIND_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]1,0\r\n"
 var RequestBwControlInfo = "[TC#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[TC_RULE#0,0,0,0,0,0#0,0,0,0,0,0]1,0\r\n[LAN_WLAN#0,0,0,0,0,0#0,0,0,0,0,0]2,17\r\nname\r\nStandard\r\nSSID\r\nRegulatoryDomain\r\nPossibleChannels\r\nAutoChannelEnable\r\nChannel\r\nX_TP_Bandwidth\r\nEnable\r\nSSIDAdvertisementEnabled\r\nBeaconType\r\nBasicEncryptionModes\r\nWPAEncryptionModes\r\nIEEE11iEncryptionModes\r\nX_TP_Configuration_Modified\r\nWMMEnable\r\nX_TP_FragmentThreshold\r\n"
+var RequestToggleBandwidthControl = "[TC#0,0,0,0,0,0#0,0,0,0,0,0]0,4\r\nenable=%d\r\nlinkType=0\r\nupTotalBW=%d\r\ndownTotalBW=%d\r\n"
+var RequestAddBwControlEntry = "[TC_RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,12\r\nenable=1\r\nstartIP=%d\r\nendIP=%d\r\nstartPort=0\r\nendPort=0\r\nprotocol=0\r\nprecedence=5\r\nupMinBW=%d\r\nupMaxBW=%d\r\ndownMinBW=%d\r\ndownMaxBW=%d\r\nflag=1\r\n"
+var RequestDeleteBwControlEntry = "[TC_RULE#%d,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+var RequestDeleteDhcpReservation = "[LAN_DHCP_STATIC_ADDR#1,%d,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+var RequestDeleteIpMacBinding = "[ARP_BIND_ENTRY#%d,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+var RequestMakeIpMacBinding = "[ARP_BIND_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\nstate=1\r\nip=%d\r\nmac=%s\r\n"
+var RequestMakeDhcpReservation = "[LAN_DHCP_STATIC_ADDR#0,0,0,0,0,0#1,0,0,0,0,0]0,3\r\nchaddr=%s\r\nyiaddr=%s\r\nenable=1\r\n"
 
 func GetRouterInfo(service RouterService) (RouterInfo, error) {
 	var (
@@ -18,7 +25,7 @@ func GetRouterInfo(service RouterService) (RouterInfo, error) {
 		err  error
 	)
 	path := service.GetAPIURL("1&1&1&8")
-	body, err := service.makeRequest(http.MethodPost, path, GetRouterInfoBody)
+	body, err := service.makeRequest(http.MethodPost, path, RequestGetRouterInfo)
 	if err != nil {
 		return info, err
 	}
@@ -31,7 +38,7 @@ func GetClientInfo(service RouterService) (Client, error) {
 		err    error
 	)
 	path := service.GetAPIURL("1&1&1&8")
-	body, err := service.makeRequest(http.MethodPost, path, GetRouterInfoBody)
+	body, err := service.makeRequest(http.MethodPost, path, RequestGetRouterInfo)
 	if err != nil {
 		return client, err
 	}
@@ -44,7 +51,7 @@ func GetStatistics(service RouterService) (ClientStatistics, error) {
 		err   error
 	)
 	path := service.GetAPIURL("1&5")
-	body, err := service.makeRequest(http.MethodPost, path, StatisticsBody)
+	body, err := service.makeRequest(http.MethodPost, path, RequestStatistics)
 	if err != nil {
 		return stats, err
 	}
@@ -72,20 +79,14 @@ func GetIpMacBindings(service RouterService) ([]ClientReservation, error) {
 }
 
 func makeDhcpReservation(service RouterService, client Client) error {
-	body := fmt.Sprintf(
-		"[LAN_DHCP_STATIC_ADDR#0,0,0,0,0,0#1,0,0,0,0,0]0,3\r\nchaddr=%s\r\nyiaddr=%s\r\nenable=1\r\n",
-		client.Mac, client.IP,
-	)
+	body := fmt.Sprintf(RequestMakeDhcpReservation, client.Mac, client.IP)
 	path := service.GetAPIURL("3")
 	_, err := service.makeRequest(http.MethodPost, path, body)
 	return err
 }
 
 func makeIpMacBinding(service RouterService, client Client) error {
-	body := fmt.Sprintf(
-		"[ARP_BIND_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\nstate=1\r\nip=%d\r\nmac=%s\r\n",
-		client.IpAsInt(), client.Mac,
-	)
+	body := fmt.Sprintf(RequestMakeIpMacBinding, client.IpAsInt(), client.Mac)
 	path := service.GetAPIURL("3")
 	_, err := service.makeRequest(http.MethodPost, path, body)
 	return err
@@ -117,7 +118,7 @@ func deleteDhcpReservation(service RouterService, macAddress string) error {
 		fmt.Printf("reservation for %s found at %d\n", macAddress, id)
 	}
 
-	body := fmt.Sprintf("[LAN_DHCP_STATIC_ADDR#1,%d,0,0,0,0#0,0,0,0,0,0]0,0\r\n", id)
+	body := fmt.Sprintf(RequestDeleteDhcpReservation, id)
 	path := service.GetAPIURL("4")
 	_, err = service.makeRequest(http.MethodPost, path, body)
 	return err
@@ -141,7 +142,7 @@ func deleteIpMacBinding(service RouterService, macAddress string) error {
 		fmt.Printf("binding for %s found at %d\n", macAddress, id)
 	}
 
-	body := fmt.Sprintf("[ARP_BIND_ENTRY#%d,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n", id)
+	body := fmt.Sprintf(RequestDeleteIpMacBinding, id)
 	path := service.GetAPIURL("4")
 	_, err = service.makeRequest(http.MethodPost, path, body)
 	return err
@@ -170,10 +171,7 @@ func ToggleBandwidthControl(service RouterService, config BandwidthControlDetail
 	if config.Enabled {
 		enable = 3
 	}
-	body := fmt.Sprintf(
-		"[TC#0,0,0,0,0,0#0,0,0,0,0,0]0,4\r\nenable=%d\r\nlinkType=0\r\nupTotalBW=%d\r\ndownTotalBW=%d\r\n",
-		enable, config.UpTotal, config.DownTotal,
-	)
+	body := fmt.Sprintf(RequestToggleBandwidthControl, enable, config.UpTotal, config.DownTotal)
 	path := service.GetAPIURL("2")
 	_, err := service.makeRequest(http.MethodPost, path, body)
 	return err
@@ -189,8 +187,7 @@ func AddBwControlEntry(service RouterService, entry BandwidthControlEntry) (int,
 		return 0, err
 	}
 	body := fmt.Sprintf(
-		"[TC_RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,12\r\nenable=1\r\nstartIP=%d\r\nendIP=%d\r\nstartPort=0\r\nendPort=0\r\nprotocol=0\r\nprecedence=5\r\nupMinBW=%d\r\nupMaxBW=%d\r\ndownMinBW=%d\r\ndownMaxBW=%d\r\nflag=1\r\n",
-		startIp, endIp, entry.UpMin, entry.UpMax, entry.DownMin, entry.DownMax,
+		RequestAddBwControlEntry, startIp, endIp, entry.UpMin, entry.UpMax, entry.DownMin, entry.DownMax,
 	)
 	path := service.GetAPIURL("3")
 	res, err := service.makeRequest(http.MethodPost, path, body)
@@ -216,7 +213,7 @@ func DeleteBwControlEntry(service RouterService, entryId int) error {
 		return fmt.Errorf("entry with id %d not found", entryId)
 	}
 
-	body := fmt.Sprintf("[TC_RULE#%d,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n", entryId)
+	body := fmt.Sprintf(RequestDeleteBwControlEntry, entryId)
 	path := service.GetAPIURL("4")
 	_, err = service.makeRequest(http.MethodPost, path, body)
 	return err
