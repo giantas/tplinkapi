@@ -88,6 +88,16 @@ func main() {
 	// 	)
 	// }
 
+	// config := BandwidthControlDetail{
+	// 	Enabled:   true,
+	// 	UpTotal:   80000,
+	// 	DownTotal: 80000,
+	// }
+	// err := ToggleBandwidthControl(Service, config)
+	// if err != nil {
+	// 	exitWithError(err)
+	// }
+
 	// err = Service.Logout()
 	// if err != nil {
 	// 	exitWithError(err)

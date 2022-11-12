@@ -164,3 +164,17 @@ func GetBandwidthControlDetails(service RouterService) (BandwidthControlDetail, 
 	}
 	return ParseBandwidthControlInfo(body)
 }
+
+func ToggleBandwidthControl(service RouterService, config BandwidthControlDetail) error {
+	enable := 0
+	if config.Enabled {
+		enable = 3
+	}
+	body := fmt.Sprintf(
+		"[TC#0,0,0,0,0,0#0,0,0,0,0,0]0,4\r\nenable=%d\r\nlinkType=0\r\nupTotalBW=%d\r\ndownTotalBW=%d\r\n",
+		enable, config.UpTotal, config.DownTotal,
+	)
+	path := service.GetAPIURL("2")
+	_, err := service.makeRequest(http.MethodPost, path, body)
+	return err
+}
