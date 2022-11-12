@@ -6,17 +6,7 @@ import (
 	"math/big"
 	"net"
 	"strconv"
-	"strings"
 )
-
-func HasError(body string) error {
-	error := errorRegex.FindStringSubmatch(body)
-	errorString := strings.TrimSpace(error[1])
-	if errorString == "0" {
-		return nil
-	}
-	return fmt.Errorf("error %s", errorString)
-}
 
 func ipToString(value string) (string, error) {
 	ipInt, err := strconv.Atoi(value)

@@ -110,8 +110,17 @@ func (service RouterService) makeRequest(path string, body string) (string, erro
 		return bodyText, err
 	}
 
-	err = HasError(bodyText)
+	err = service.hasError(bodyText)
 	return bodyText, err
+}
+
+func (service RouterService) hasError(body string) error {
+	error := errorRegex.FindStringSubmatch(body)
+	errorString := strings.TrimSpace(error[1])
+	if errorString == "0" {
+		return nil
+	}
+	return fmt.Errorf("error %s", errorString)
 }
 
 func (service RouterService) GetRouterInfo() (RouterInfo, error) {
