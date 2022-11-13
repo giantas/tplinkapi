@@ -15,6 +15,7 @@ const (
 type RouterInfo struct {
 	Model       string
 	Description string
+	Client
 }
 
 type Client struct {

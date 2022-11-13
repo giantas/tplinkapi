@@ -8,10 +8,8 @@ import (
 )
 
 var (
-	modelNameRegex          = regexp.MustCompile(`modelName\=([\w-]+)\s`)
-	descriptionRegex        = regexp.MustCompile(`description\=([\w\-\s]+)\s`)
-	clientIpRegex           = regexp.MustCompile(`clientIp\=\"([\d\.]+)\"\;`)
-	clientMacRegex          = regexp.MustCompile(`clientMac\=\"([\:\w]+)\"\;`)
+	modelRegex              = regexp.MustCompile(`modelName\=([\w-]+)\sdescription\=([\w\-\s]+)\s`)
+	clientRegex             = regexp.MustCompile(`clientIp\=\"([\d\.]+)\"\;\n.+\sclientMac\=\"([\:\w]+)\"\;`)
 	errorRegex              = regexp.MustCompile(`\[error\](\d+)`)
 	statisticsRegex         = regexp.MustCompile(`ipAddress\=(\d+)\nmacAddress\=([\w\:]+)\ntotalPkts=\d+\ntotalBytes=(\d+)`)
 	addressReservationRegex = regexp.MustCompile(`\[\d+\,(\d+).+\]\d\nenable=(\d)\nchaddr\=([\w\:]+)\nyiaddr\=([\d{1,3}\.]+)\n`)
@@ -26,23 +24,34 @@ type Storage int64
 type ClientStatistics []ClientStat
 
 func ParseRouterInfo(body string) (RouterInfo, error) {
-	modelName := modelNameRegex.FindStringSubmatch(body)
-	description := descriptionRegex.FindStringSubmatch(body)
-	info := RouterInfo{
-		Model:       modelName[1],
-		Description: strings.TrimSpace(description[1]),
+	var info RouterInfo
+	match := modelRegex.FindStringSubmatch(body)
+	if len(match) != 2 {
+		return info, fmt.Errorf("invalid data for router info")
+	}
+	client, err := ParseClient(body)
+	if err != nil {
+		return info, err
+	}
+	info = RouterInfo{
+		Model:       match[1],
+		Description: strings.TrimSpace(match[2]),
+		Client:      client,
 	}
 	return info, nil
 }
 
 func ParseClient(body string) (Client, error) {
-	clientIp := clientIpRegex.FindStringSubmatch(body)
-	clientMac := clientMacRegex.FindStringSubmatch(body)
-	info := Client{
-		IP:  clientIp[1],
-		Mac: clientMac[1],
+	var client Client
+	match := clientRegex.FindStringSubmatch(body)
+	if len(match) != 2 {
+		return client, fmt.Errorf("invalid data for router client info")
 	}
-	return info, nil
+	client = Client{
+		IP:  match[1],
+		Mac: match[2],
+	}
+	return client, nil
 }
 
 func ParseStatistics(body string) (ClientStatistics, error) {
