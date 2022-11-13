@@ -10,6 +10,7 @@ import (
 var (
 	modelRegex              = regexp.MustCompile(`modelName\=([\w-]+)\sdescription\=([\w\-\s]+)\s`)
 	clientRegex             = regexp.MustCompile(`clientIp\=\"([\d\.]+)\"\;\n.+\sclientMac\=\"([\:\w]+)\"\;`)
+	lanConfigRegex          = regexp.MustCompile(`minAddress\=([\d+\.]+)\smaxAddress\=([\d+\.]+)\ssubnetMask\=([\d+\.]+)\s`)
 	errorRegex              = regexp.MustCompile(`\[error\](\d+)`)
 	statisticsRegex         = regexp.MustCompile(`ipAddress\=(\d+)\nmacAddress\=([\w\:]+)\ntotalPkts=\d+\ntotalBytes=(\d+)`)
 	addressReservationRegex = regexp.MustCompile(`\[\d+\,(\d+).+\]\d\nenable=(\d)\nchaddr\=([\w\:]+)\nyiaddr\=([\d{1,3}\.]+)\n`)
@@ -26,7 +27,7 @@ type ClientStatistics []ClientStat
 func ParseRouterInfo(body string) (RouterInfo, error) {
 	var info RouterInfo
 	match := modelRegex.FindStringSubmatch(body)
-	if len(match) != 2 {
+	if len(match) != 3 {
 		return info, fmt.Errorf("invalid data for router info")
 	}
 	client, err := ParseClient(body)
@@ -44,7 +45,7 @@ func ParseRouterInfo(body string) (RouterInfo, error) {
 func ParseClient(body string) (Client, error) {
 	var client Client
 	match := clientRegex.FindStringSubmatch(body)
-	if len(match) != 2 {
+	if len(match) != 3 {
 		return client, fmt.Errorf("invalid data for router client info")
 	}
 	client = Client{
@@ -52,6 +53,20 @@ func ParseClient(body string) (Client, error) {
 		Mac: match[2],
 	}
 	return client, nil
+}
+
+func ParseLanConfig(body string) (LanConfig, error) {
+	var cfg LanConfig
+	match := lanConfigRegex.FindStringSubmatch(body)
+	if len(match) != 4 {
+		return cfg, fmt.Errorf("invalid data for lan config")
+	}
+	cfg = LanConfig{
+		MinAddress: match[1],
+		MaxAddress: match[2],
+		SubnetMask: match[3],
+	}
+	return cfg, nil
 }
 
 func ParseStatistics(body string) (ClientStatistics, error) {

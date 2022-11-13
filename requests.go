@@ -11,6 +11,7 @@ import (
 )
 
 var RequestGetRouterInfo = "[IGD_DEV_INFO#0,0,0,0,0,0#0,0,0,0,0,0]0,4\r\nmodelName\r\ndescription\r\nX_TP_isFD\r\nX_TP_ProductVersion\r\n[ETH_SWITCH#0,0,0,0,0,0#0,0,0,0,0,0]1,1\r\nnumberOfVirtualPorts\r\n[MULTIMODE#0,0,0,0,0,0#0,0,0,0,0,0]2,1\r\nmode\r\n[/cgi/info#0,0,0,0,0,0#0,0,0,0,0,0]3,0\r\n"
+var RequestLanConfig = "[LAN_HOST_CFG#1,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[LAN_IP_INTF#0,0,0,0,0,0#1,0,0,0,0,0]1,4\r\nIPInterfaceIPAddress\r\nIPInterfaceSubnetMask\r\n__ifName\r\nX_TP_MACAddress\r\n[LAN_IGMP_SNOOP#1,0,0,0,0,0#0,0,0,0,0,0]2,1\r\nenabled\r\n"
 var RequestLogout = "[/cgi/logout#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
 var RequestStatistics = "[STAT_CFG#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[STAT_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]1,0\r\n"
 var RequestAddressReservation = "[LAN_DHCP_STATIC_ADDR#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\nenable\r\nchaddr\r\nyiaddr\r\n"
@@ -147,6 +148,19 @@ func (service RouterService) GetClientInfo() (Client, error) {
 		return client, err
 	}
 	return ParseClient(body)
+}
+
+func (service RouterService) GetLanConfig() (LanConfig, error) {
+	var (
+		cfg LanConfig
+		err error
+	)
+	path := service.GetAPIURL("1&6&1")
+	body, err := service.makeRequest(path, RequestLanConfig)
+	if err != nil {
+		return cfg, err
+	}
+	return ParseLanConfig(body)
 }
 
 func (service RouterService) GetStatistics() (ClientStatistics, error) {
