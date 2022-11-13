@@ -13,17 +13,17 @@ func ipToString(value string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	ip := int2ip(uint32(ipInt))
+	ip := Int2ip(uint32(ipInt))
 	return ip.String(), err
 }
 
-func int2ip(nn uint32) net.IP {
+func Int2ip(nn uint32) net.IP {
 	ip := make(net.IP, 4)
 	binary.BigEndian.PutUint32(ip, nn)
 	return ip
 }
 
-func ip2Int(ipAddress string) (uint32, error) {
+func Ip2Int(ipAddress string) (uint32, error) {
 	ip := net.ParseIP(ipAddress)
 	if ip == nil {
 		return 0, fmt.Errorf("invalid ip address")

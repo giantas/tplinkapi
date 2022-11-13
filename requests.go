@@ -282,11 +282,11 @@ func (service RouterService) ToggleBandwidthControl(config BandwidthControlDetai
 }
 
 func (service RouterService) AddBwControlEntry(entry BandwidthControlEntry) (int, error) {
-	startIp, err := ip2Int(entry.StartIp)
+	startIp, err := Ip2Int(entry.StartIp)
 	if err != nil {
 		return 0, err
 	}
-	endIp, err := ip2Int(entry.EndIp)
+	endIp, err := Ip2Int(entry.EndIp)
 	if err != nil {
 		return 0, err
 	}
