@@ -24,6 +24,7 @@ var RequestDeleteDhcpReservation = "[LAN_DHCP_STATIC_ADDR#1,%d,0,0,0,0#0,0,0,0,0
 var RequestDeleteIpMacBinding = "[ARP_BIND_ENTRY#%d,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
 var RequestMakeIpMacBinding = "[ARP_BIND_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\nstate=1\r\nip=%d\r\nmac=%s\r\n"
 var RequestMakeDhcpReservation = "[LAN_DHCP_STATIC_ADDR#0,0,0,0,0,0#1,0,0,0,0,0]0,3\r\nchaddr=%s\r\nyiaddr=%s\r\nenable=1\r\n"
+var RequestBandwidthControlEntry = "[TC#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[TC_RULE#%d,0,0,0,0,0#0,0,0,0,0,0]1,0\r\n"
 
 type RouterService struct {
 	Username string
@@ -293,6 +294,17 @@ func (service RouterService) ToggleBandwidthControl(config BandwidthControlDetai
 	path := service.GetAPIURL("2")
 	_, err := service.makeRequest(path, body)
 	return err
+}
+
+func (service RouterService) GetBandwidthControlEntry(id int) (BandwidthControlEntry, error) {
+	var entry BandwidthControlEntry
+	body := fmt.Sprintf(RequestBandwidthControlEntry, id)
+	path := service.GetAPIURL("1&1")
+	body, err := service.makeRequest(path, body)
+	if err != nil {
+		return entry, err
+	}
+	return ParseBandwidthControlEntry(body)
 }
 
 func (service RouterService) AddBwControlEntry(entry BandwidthControlEntry) (int, error) {

@@ -221,6 +221,54 @@ func ParseBandwidthControlInfo(body string) (BandwidthControlDetail, error) {
 	return config, err
 }
 
+func ParseBandwidthControlEntry(body string) (BandwidthControlEntry, error) {
+	var entry BandwidthControlEntry
+	match := bwControlEntryRegex.FindStringSubmatch(body)
+	if len(match) != 9 {
+		return entry, fmt.Errorf("invalid data for bandwidth control entry")
+	}
+	id, err := strconv.Atoi(match[1])
+	if err != nil {
+		return entry, err
+	}
+	startIp, err := ipToString(match[3])
+	if err != nil {
+		return entry, err
+	}
+	endIp, err := ipToString(match[4])
+	if err != nil {
+		return entry, err
+	}
+	upMin, err := strconv.Atoi(match[5])
+	if err != nil {
+		return entry, err
+	}
+	upMax, err := strconv.Atoi(match[6])
+	if err != nil {
+		return entry, err
+	}
+	downMin, err := strconv.Atoi(match[7])
+	if err != nil {
+		return entry, err
+	}
+	downMax, err := strconv.Atoi(match[8])
+	if err != nil {
+		return entry, err
+	}
+
+	entry = BandwidthControlEntry{
+		Id:      id,
+		Enabled: match[2] == "1",
+		StartIp: startIp,
+		EndIp:   endIp,
+		UpMin:   upMin,
+		UpMax:   upMax,
+		DownMin: downMin,
+		DownMax: downMax,
+	}
+	return entry, err
+}
+
 func GetId(body string) (int, error) {
 	matches := getIdRegex.FindStringSubmatch(body)
 	if len(matches) == 0 {
