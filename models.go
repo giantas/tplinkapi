@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
-	"strconv"
-	"strings"
 )
 
 const (
@@ -67,22 +65,35 @@ type Client struct {
 	Mac string
 }
 
+func NewClient(ip, mac string) (Client, error) {
+	var (
+		client Client
+		err    error
+	)
+
+	if !IsValidMacAddress(mac) {
+		return client, fmt.Errorf("invalid mac address '%s'", mac)
+	}
+
+	netIp := net.ParseIP(ip)
+	if netIp == nil {
+		return client, fmt.Errorf("invalid ip address")
+	}
+
+	client = Client{
+		IP:  ip,
+		Mac: mac,
+	}
+	return client, err
+}
+
+func (client Client) IsMulticast() bool {
+	return IsMulticast(client.Mac)
+}
+
 func (client Client) IpAsInt() uint32 {
-	bits := strings.Split(client.IP, ".")
-
-	b0, _ := strconv.Atoi(bits[0])
-	b1, _ := strconv.Atoi(bits[1])
-	b2, _ := strconv.Atoi(bits[2])
-	b3, _ := strconv.Atoi(bits[3])
-
-	var sum uint32
-
-	sum += uint32(b0) << 24
-	sum += uint32(b1) << 16
-	sum += uint32(b2) << 8
-	sum += uint32(b3)
-
-	return sum
+	ipInt, _ := Ip2Int(client.IP)
+	return ipInt
 }
 
 type ClientStat struct {

@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"math/big"
 	"net"
+	"regexp"
 	"strconv"
 )
+
+var macAddressRegex = regexp.MustCompile(`^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$`)
 
 func ipToString(value string) (string, error) {
 	ipInt, err := strconv.Atoi(value)
@@ -31,4 +34,21 @@ func Ip2Int(ipAddress string) (uint32, error) {
 	i := big.NewInt(0)
 	i.SetBytes(ip)
 	return uint32(i.Int64()), nil
+}
+
+func IsValidMacAddress(value string) bool {
+	return macAddressRegex.MatchString(value)
+}
+
+func IsMulticast(mac string) bool {
+	bin := stringToBin(mac[:2])
+	lastBit := bin[len(bin)-1:]
+	return lastBit == "1"
+}
+
+func stringToBin(s string) (binString string) {
+	for _, c := range s {
+		binString = fmt.Sprintf("%s%b", binString, c)
+	}
+	return
 }

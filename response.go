@@ -48,11 +48,8 @@ func ParseClient(body string) (Client, error) {
 	if len(match) != 3 {
 		return client, fmt.Errorf("invalid data for router client info")
 	}
-	client = Client{
-		IP:  match[1],
-		Mac: match[2],
-	}
-	return client, nil
+	client, err := NewClient(match[1], match[2])
+	return client, err
 }
 
 func ParseLanConfig(body string) (LanConfig, error) {
@@ -87,12 +84,13 @@ func ParseStatistics(body string) (ClientStatistics, error) {
 			return stats, err
 		}
 
+		client, err := NewClient(ip, mac)
+		if err != nil {
+			return stats, err
+		}
 		stat := ClientStat{
-			Client: Client{
-				IP:  ip,
-				Mac: mac,
-			},
-			Bytes: bytes,
+			Client: client,
+			Bytes:  bytes,
 		}
 		stats = append(stats, stat)
 	}
@@ -109,12 +107,13 @@ func ParseReservations(body string) ([]ClientReservation, error) {
 			return reservations, err
 		}
 
+		client, err := NewClient(match[4], match[3])
+		if err != nil {
+			return reservations, err
+		}
 		reservation := ClientReservation{
-			Id: id,
-			Client: Client{
-				IP:  match[4],
-				Mac: match[3],
-			},
+			Id:      id,
+			Client:  client,
 			Enabled: match[2] == "1",
 		}
 		reservations = append(reservations, reservation)
@@ -138,12 +137,14 @@ func ParseIpMacBinding(body string) ([]ClientReservation, error) {
 			return reservations, err
 		}
 
+		client, err := NewClient(ip, match[4])
+		if err != nil {
+			return reservations, err
+		}
+
 		reservation := ClientReservation{
-			Id: id,
-			Client: Client{
-				IP:  ip,
-				Mac: match[4],
-			},
+			Id:      id,
+			Client:  client,
 			Enabled: match[2] == "1",
 		}
 		reservations = append(reservations, reservation)
