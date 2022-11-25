@@ -80,6 +80,10 @@ func NewClient(ip, mac string) (Client, error) {
 		return client, fmt.Errorf("invalid ip address")
 	}
 
+	if netIp.To4() != nil {
+		return client, fmt.Errorf("not a valid IPv4 address")
+	}
+
 	client = Client{
 		IP:  ip,
 		Mac: mac,
@@ -92,7 +96,10 @@ func (client Client) IsMulticast() bool {
 }
 
 func (client Client) IpAsInt() uint32 {
-	ipInt, _ := Ip2Int(client.IP)
+	ipInt, err := Ip2Int(client.IP)
+	if err != nil {
+		ipInt = 0
+	}
 	return ipInt
 }
 

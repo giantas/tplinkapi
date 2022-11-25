@@ -10,21 +10,23 @@ import (
 	"time"
 )
 
-var RequestGetRouterInfo = "[IGD_DEV_INFO#0,0,0,0,0,0#0,0,0,0,0,0]0,4\r\nmodelName\r\ndescription\r\nX_TP_isFD\r\nX_TP_ProductVersion\r\n[ETH_SWITCH#0,0,0,0,0,0#0,0,0,0,0,0]1,1\r\nnumberOfVirtualPorts\r\n[MULTIMODE#0,0,0,0,0,0#0,0,0,0,0,0]2,1\r\nmode\r\n[/cgi/info#0,0,0,0,0,0#0,0,0,0,0,0]3,0\r\n"
-var RequestLanConfig = "[LAN_HOST_CFG#1,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[LAN_IP_INTF#0,0,0,0,0,0#1,0,0,0,0,0]1,4\r\nIPInterfaceIPAddress\r\nIPInterfaceSubnetMask\r\n__ifName\r\nX_TP_MACAddress\r\n[LAN_IGMP_SNOOP#1,0,0,0,0,0#0,0,0,0,0,0]2,1\r\nenabled\r\n"
-var RequestLogout = "[/cgi/logout#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
-var RequestStatistics = "[STAT_CFG#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[STAT_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]1,0\r\n"
-var RequestAddressReservation = "[LAN_DHCP_STATIC_ADDR#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\nenable\r\nchaddr\r\nyiaddr\r\n"
-var RequestIpMacBinding = "[ARP_BIND#0,0,0,0,0,0#0,0,0,0,0,0]0,1\r\nenable\r\n[ARP_BIND_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]1,0\r\n"
-var RequestBwControlInfo = "[TC#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[TC_RULE#0,0,0,0,0,0#0,0,0,0,0,0]1,0\r\n[LAN_WLAN#0,0,0,0,0,0#0,0,0,0,0,0]2,17\r\nname\r\nStandard\r\nSSID\r\nRegulatoryDomain\r\nPossibleChannels\r\nAutoChannelEnable\r\nChannel\r\nX_TP_Bandwidth\r\nEnable\r\nSSIDAdvertisementEnabled\r\nBeaconType\r\nBasicEncryptionModes\r\nWPAEncryptionModes\r\nIEEE11iEncryptionModes\r\nX_TP_Configuration_Modified\r\nWMMEnable\r\nX_TP_FragmentThreshold\r\n"
-var RequestToggleBandwidthControl = "[TC#0,0,0,0,0,0#0,0,0,0,0,0]0,4\r\nenable=%d\r\nlinkType=0\r\nupTotalBW=%d\r\ndownTotalBW=%d\r\n"
-var RequestAddBwControlEntry = "[TC_RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,12\r\nenable=1\r\nstartIP=%d\r\nendIP=%d\r\nstartPort=0\r\nendPort=0\r\nprotocol=0\r\nprecedence=5\r\nupMinBW=%d\r\nupMaxBW=%d\r\ndownMinBW=%d\r\ndownMaxBW=%d\r\nflag=1\r\n"
-var RequestDeleteBwControlEntry = "[TC_RULE#%d,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
-var RequestDeleteDhcpReservation = "[LAN_DHCP_STATIC_ADDR#1,%d,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
-var RequestDeleteIpMacBinding = "[ARP_BIND_ENTRY#%d,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
-var RequestMakeIpMacBinding = "[ARP_BIND_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\nstate=1\r\nip=%d\r\nmac=%s\r\n"
-var RequestMakeDhcpReservation = "[LAN_DHCP_STATIC_ADDR#0,0,0,0,0,0#1,0,0,0,0,0]0,3\r\nchaddr=%s\r\nyiaddr=%s\r\nenable=1\r\n"
-var RequestBandwidthControlEntry = "[TC#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[TC_RULE#%d,0,0,0,0,0#0,0,0,0,0,0]1,0\r\n"
+var (
+	RequestGetRouterInfo          = "[IGD_DEV_INFO#0,0,0,0,0,0#0,0,0,0,0,0]0,4\r\nmodelName\r\ndescription\r\nX_TP_isFD\r\nX_TP_ProductVersion\r\n[ETH_SWITCH#0,0,0,0,0,0#0,0,0,0,0,0]1,1\r\nnumberOfVirtualPorts\r\n[MULTIMODE#0,0,0,0,0,0#0,0,0,0,0,0]2,1\r\nmode\r\n[/cgi/info#0,0,0,0,0,0#0,0,0,0,0,0]3,0\r\n"
+	RequestLanConfig              = "[LAN_HOST_CFG#1,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[LAN_IP_INTF#0,0,0,0,0,0#1,0,0,0,0,0]1,4\r\nIPInterfaceIPAddress\r\nIPInterfaceSubnetMask\r\n__ifName\r\nX_TP_MACAddress\r\n[LAN_IGMP_SNOOP#1,0,0,0,0,0#0,0,0,0,0,0]2,1\r\nenabled\r\n"
+	RequestLogout                 = "[/cgi/logout#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+	RequestStatistics             = "[STAT_CFG#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[STAT_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]1,0\r\n"
+	RequestAddressReservation     = "[LAN_DHCP_STATIC_ADDR#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\nenable\r\nchaddr\r\nyiaddr\r\n"
+	RequestIpMacBinding           = "[ARP_BIND#0,0,0,0,0,0#0,0,0,0,0,0]0,1\r\nenable\r\n[ARP_BIND_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]1,0\r\n"
+	RequestBwControlInfo          = "[TC#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[TC_RULE#0,0,0,0,0,0#0,0,0,0,0,0]1,0\r\n[LAN_WLAN#0,0,0,0,0,0#0,0,0,0,0,0]2,17\r\nname\r\nStandard\r\nSSID\r\nRegulatoryDomain\r\nPossibleChannels\r\nAutoChannelEnable\r\nChannel\r\nX_TP_Bandwidth\r\nEnable\r\nSSIDAdvertisementEnabled\r\nBeaconType\r\nBasicEncryptionModes\r\nWPAEncryptionModes\r\nIEEE11iEncryptionModes\r\nX_TP_Configuration_Modified\r\nWMMEnable\r\nX_TP_FragmentThreshold\r\n"
+	RequestToggleBandwidthControl = "[TC#0,0,0,0,0,0#0,0,0,0,0,0]0,4\r\nenable=%d\r\nlinkType=0\r\nupTotalBW=%d\r\ndownTotalBW=%d\r\n"
+	RequestAddBwControlEntry      = "[TC_RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,12\r\nenable=1\r\nstartIP=%d\r\nendIP=%d\r\nstartPort=0\r\nendPort=0\r\nprotocol=0\r\nprecedence=5\r\nupMinBW=%d\r\nupMaxBW=%d\r\ndownMinBW=%d\r\ndownMaxBW=%d\r\nflag=1\r\n"
+	RequestDeleteBwControlEntry   = "[TC_RULE#%d,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+	RequestDeleteDhcpReservation  = "[LAN_DHCP_STATIC_ADDR#1,%d,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+	RequestDeleteIpMacBinding     = "[ARP_BIND_ENTRY#%d,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+	RequestMakeIpMacBinding       = "[ARP_BIND_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\nstate=1\r\nip=%d\r\nmac=%s\r\n"
+	RequestMakeDhcpReservation    = "[LAN_DHCP_STATIC_ADDR#0,0,0,0,0,0#1,0,0,0,0,0]0,3\r\nchaddr=%s\r\nyiaddr=%s\r\nenable=1\r\n"
+	RequestBandwidthControlEntry  = "[TC#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[TC_RULE#%d,0,0,0,0,0#0,0,0,0,0,0]1,0\r\n"
+)
 
 type RouterService struct {
 	Username string

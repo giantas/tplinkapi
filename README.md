@@ -1,6 +1,8 @@
 # tplinkapi
 
-This library provides an (unofficial) interface for interacting with a Tp-Link Router. Tested with TL-WR840N and IPv4.
+This library provides an (unofficial) interface for interacting with a Tp-Link Router. It only works with Ipv4 addresses.
+
+Tested with TL-WR840N.
 
 This is still work in progress.
 
