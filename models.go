@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"strings"
 )
 
 const (
@@ -17,6 +18,25 @@ type LanConfig struct {
 	MinAddress string
 	MaxAddress string
 	SubnetMask string
+}
+
+func NewLanConfig(minAddress, maxAddress, subnetMask string) (LanConfig, error) {
+	var (
+		cfg LanConfig
+		err error
+	)
+	addresses := []string{minAddress, maxAddress, subnetMask}
+	for _, address := range addresses {
+		if !IsValidIPv4Address(address) {
+			return cfg, fmt.Errorf("invalid IPv4 address %s", address)
+		}
+	}
+	cfg = LanConfig{
+		MinAddress: minAddress,
+		MaxAddress: maxAddress,
+		SubnetMask: subnetMask,
+	}
+	return cfg, err
 }
 
 func (cfg LanConfig) GetPrefix() int {
@@ -46,11 +66,7 @@ func (cfg LanConfig) GetIpRange() (LanConfig, error) {
 	endAddress := make(net.IP, 4)
 	binary.BigEndian.PutUint32(endAddress, finish)
 
-	c = LanConfig{
-		MinAddress: startAddress.String(),
-		MaxAddress: endAddress.String(),
-		SubnetMask: cfg.SubnetMask,
-	}
+	c, err = NewLanConfig(startAddress.String(), endAddress.String(), cfg.SubnetMask)
 	return c, err
 }
 
@@ -74,14 +90,10 @@ func NewClient(ip, mac string) (Client, error) {
 	if !IsValidMacAddress(mac) {
 		return client, fmt.Errorf("invalid mac address '%s'", mac)
 	}
+	mac = strings.ToUpper(mac)
 
-	netIp := net.ParseIP(ip)
-	if netIp == nil {
-		return client, fmt.Errorf("invalid ip address")
-	}
-
-	if netIp.To4() != nil {
-		return client, fmt.Errorf("not a valid IPv4 address")
+	if !IsValidIPv4Address(ip) {
+		return client, fmt.Errorf("invalid IPv4 address")
 	}
 
 	client = Client{

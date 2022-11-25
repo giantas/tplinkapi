@@ -20,7 +20,7 @@ var (
 	getIdRegex              = regexp.MustCompile(`\[(\d+)\,[\,0]+\]`)
 )
 
-type Storage int64
+type Storage int
 
 type ClientStatistics []ClientStat
 
@@ -58,12 +58,8 @@ func ParseLanConfig(body string) (LanConfig, error) {
 	if len(match) != 4 {
 		return cfg, fmt.Errorf("invalid data for lan config")
 	}
-	cfg = LanConfig{
-		MinAddress: match[1],
-		MaxAddress: match[2],
-		SubnetMask: match[3],
-	}
-	return cfg, nil
+	cfg, err := NewLanConfig(match[1], match[2], match[3])
+	return cfg, err
 }
 
 func ParseStatistics(body string) (ClientStatistics, error) {

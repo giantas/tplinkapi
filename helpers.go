@@ -46,6 +46,17 @@ func IsMulticast(mac string) bool {
 	return lastBit == "1"
 }
 
+func IsValidIPv4Address(value string) bool {
+	ip := net.ParseIP(value)
+	if ip == nil {
+		return false
+	}
+	if ip.To4() == nil {
+		return false
+	}
+	return true
+}
+
 func stringToBin(s string) (binString string) {
 	for _, c := range s {
 		binString = fmt.Sprintf("%s%b", binString, c)
