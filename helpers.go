@@ -63,3 +63,13 @@ func stringToBin(s string) (binString string) {
 	}
 	return
 }
+
+func GetSubnetPrefix(subnetMask string) int {
+	ip := net.ParseIP(subnetMask)
+	if ip == nil {
+		return 0
+	}
+	addr := ip.To4()
+	sz, _ := net.IPv4Mask(addr[0], addr[1], addr[2], addr[3]).Size()
+	return sz
+}

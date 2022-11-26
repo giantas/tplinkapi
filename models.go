@@ -40,10 +40,7 @@ func NewLanConfig(minAddress, maxAddress, subnetMask string) (LanConfig, error) 
 }
 
 func (cfg LanConfig) GetPrefix() int {
-	ip := net.ParseIP(cfg.SubnetMask)
-	addr := ip.To4()
-	sz, _ := net.IPv4Mask(addr[0], addr[1], addr[2], addr[3]).Size()
-	return sz
+	return GetSubnetPrefix(cfg.SubnetMask)
 }
 
 func (cfg LanConfig) GetIpRange() (LanConfig, error) {
