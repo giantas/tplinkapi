@@ -177,6 +177,7 @@ type AccessControlHostFormatter interface {
 type AccessControlHost struct {
 	Id   int
 	Type AccessControlHostType
+	ref  string
 }
 
 type IPRangeAccessControlHost struct {
@@ -211,6 +212,10 @@ func NewIPRangeAccessControlHost(startIP, endIP string, startPort, endPort int) 
 }
 
 func (host IPRangeAccessControlHost) GetRef() string {
+	if host.ref != "" {
+		return host.ref
+	}
+
 	startIp, _ := Ip2Int(host.StartIP)
 	endIp, _ := Ip2Int(host.EndIP)
 	res := startIp + endIp
@@ -240,5 +245,67 @@ func NewMacAddressAccessControlHost(macAddress string) (MacAddressAccessControlH
 }
 
 func (host MacAddressAccessControlHost) GetRef() string {
-	return host.Mac
+	if host.ref != "" {
+		return host.ref
+	}
+
+	ref := strings.ReplaceAll(host.Mac, ":", "")
+	return ref
+}
+
+type AccessControlHostMap map[AccessControlHostType][]interface{}
+
+type Direction int
+
+const (
+	IN Direction = iota
+	OUT
+)
+
+func GetDirectionFromInt(value int) (Direction, error) {
+	switch value {
+	case 0:
+		return IN, nil
+	case 1:
+		return OUT, nil
+	default:
+		var d Direction
+		return d, fmt.Errorf("invalid direction value")
+	}
+}
+
+type Protocol int
+
+const (
+	TCP Protocol = iota
+	UDP
+	ICMP
+	ALL
+)
+
+func GetProtocolFromInt(value int) (Protocol, error) {
+	switch value {
+	case 0:
+		return TCP, nil
+	case 1:
+		return UDP, nil
+	case 2:
+		return ICMP, nil
+	case 3:
+		return ALL, nil
+	default:
+		var p Protocol
+		return p, fmt.Errorf("invalid protocol value '%d'", value)
+	}
+}
+
+type AccessControlRule struct {
+	Id              int
+	Enabled         bool
+	RuleName        string
+	Protocol        Protocol
+	Direction       Direction
+	InternalHostRef string
+	ExternalHostRef string
+	ScheduleRef     string
 }

@@ -29,6 +29,9 @@ var (
 	RequestToggleInternetAccessControl = "[FIREWALL#0,0,0,0,0,0#0,0,0,0,0,0]0,2\r\nenable=%d\r\ndefaultAction=%d\r\n"
 	RequestDeleteAccessControlHost     = "[INTERNAL_HOST#%d,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
 	RequestAddAccessControlRule        = "[RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,8\r\nruleName=%s\r\ninternalHostRef=%s\r\nexternalHostRef=\r\nscheduleRef=\r\naction=1\r\nenable=1\r\ndirection=0\r\nprotocol=3\r\n"
+	RequestAccessControlHosts          = "[INTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+	RequestAccessControlRules          = "[RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[FIREWALL#0,0,0,0,0,0#0,0,0,0,0,0]1,2\r\nenable\r\ndefaultAction\r\n"
+	RequestDeleteAccessControlRule     = "[RULE#%d,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
 )
 
 type RouterService struct {
@@ -419,4 +422,36 @@ func (service RouterService) AddAccessControlRule(host AccessControlHostFormatte
 		return 0, err
 	}
 	return GetId(body)
+}
+
+func (service RouterService) GetAccessControlHosts() (AccessControlHostMap, error) {
+	var (
+		hostMap AccessControlHostMap
+		err     error
+	)
+	body := RequestAccessControlHosts
+	path := service.GetAPIURL("5")
+	body, err = service.makeRequest(path, body)
+	if err != nil {
+		return hostMap, err
+	}
+	return ParseAccessControlHosts(body)
+}
+
+func (service RouterService) GetAccessControlRules() ([]AccessControlRule, error) {
+	rules := make([]AccessControlRule, 0)
+	body := RequestAccessControlRules
+	path := service.GetAPIURL("5&1")
+	body, err := service.makeRequest(path, body)
+	if err != nil {
+		return rules, err
+	}
+	return ParseAccessControlRules(body)
+}
+
+func (service RouterService) DeleteAccessControlRule(id int) error {
+	body := fmt.Sprintf(RequestDeleteAccessControlRule, id)
+	path := service.GetAPIURL("4")
+	_, err := service.makeRequest(path, body)
+	return err
 }
