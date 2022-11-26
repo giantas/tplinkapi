@@ -74,8 +74,9 @@ type RouterInfo struct {
 }
 
 type Client struct {
-	IP  string
-	Mac string
+	IP         string
+	Mac        string
+	SubnetMask string
 }
 
 func NewClient(ip, mac string) (Client, error) {

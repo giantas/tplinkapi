@@ -12,6 +12,7 @@ import (
 
 var (
 	requestGetRouterInfo               = "[IGD_DEV_INFO#0,0,0,0,0,0#0,0,0,0,0,0]0,4\r\nmodelName\r\ndescription\r\nX_TP_isFD\r\nX_TP_ProductVersion\r\n[ETH_SWITCH#0,0,0,0,0,0#0,0,0,0,0,0]1,1\r\nnumberOfVirtualPorts\r\n[MULTIMODE#0,0,0,0,0,0#0,0,0,0,0,0]2,1\r\nmode\r\n[/cgi/info#0,0,0,0,0,0#0,0,0,0,0,0]3,0\r\n"
+	requestRouterNetworkInfo           = "[LAN_IP_INTF#0,0,0,0,0,0#0,0,0,0,0,0]0,3\r\nIPInterfaceIPAddress\r\nIPInterfaceSubnetMask\r\nX_TP_MACAddress\r\n[LAN_HOST_CFG#0,0,0,0,0,0#0,0,0,0,0,0]1,1\r\nDHCPServerEnable\r\n"
 	requestLanConfig                   = "[LAN_HOST_CFG#1,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[LAN_IP_INTF#0,0,0,0,0,0#1,0,0,0,0,0]1,4\r\nIPInterfaceIPAddress\r\nIPInterfaceSubnetMask\r\n__ifName\r\nX_TP_MACAddress\r\n[LAN_IGMP_SNOOP#1,0,0,0,0,0#0,0,0,0,0,0]2,1\r\nenabled\r\n"
 	requestLogout                      = "[/cgi/logout#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
 	requestStatistics                  = "[STAT_CFG#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[STAT_ENTRY#0,0,0,0,0,0#0,0,0,0,0,0]1,0\r\n"
@@ -143,7 +144,21 @@ func (service RouterService) GetRouterInfo() (RouterInfo, error) {
 	if err != nil {
 		return info, err
 	}
-	return ParseRouterInfo(body)
+	info, err = ParseRouterInfo(body)
+	if err != nil {
+		return info, err
+	}
+	path = service.GetAPIURL("5&5")
+	body, err = service.makeRequest(path, requestRouterNetworkInfo)
+	if err != nil {
+		return info, err
+	}
+	client, err := ParseRouterNetworkInfo(body)
+	if err != nil {
+		return info, err
+	}
+	info.Client = client
+	return info, err
 }
 
 func (service RouterService) GetClientInfo() (Client, error) {
