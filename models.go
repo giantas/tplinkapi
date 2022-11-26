@@ -157,3 +157,88 @@ type BandwidthControlDetail struct {
 	DownTotal int
 	Entries   []BandwidthControlEntry
 }
+
+type InternetAccessControl struct {
+	Enabled     bool
+	DefaultDeny bool
+}
+
+type AccessControlHostType int
+
+const (
+	IPRangeHostType AccessControlHostType = iota
+	MacAddressHostType
+)
+
+type AccessControlHostFormatter interface {
+	GetRef() string
+}
+
+type AccessControlHost struct {
+	Id   int
+	Type AccessControlHostType
+}
+
+type IPRangeAccessControlHost struct {
+	AccessControlHost
+	StartIP   string
+	EndIP     string
+	StartPort int
+	EndPort   int
+}
+
+func NewIPRangeAccessControlHost(startIP, endIP string, startPort, endPort int) (IPRangeAccessControlHost, error) {
+	var host IPRangeAccessControlHost
+
+	if !IsValidIPv4Address(startIP) {
+		return host, fmt.Errorf("invalid IPv4 address '%s'", startIP)
+	}
+
+	if !IsValidIPv4Address(endIP) {
+		return host, fmt.Errorf("invalid IPv4 address '%s'", endIP)
+	}
+
+	host = IPRangeAccessControlHost{
+		AccessControlHost: AccessControlHost{
+			Type: IPRangeHostType,
+		},
+		StartIP:   startIP,
+		EndIP:     endIP,
+		StartPort: startPort,
+		EndPort:   endPort,
+	}
+	return host, nil
+}
+
+func (host IPRangeAccessControlHost) GetRef() string {
+	startIp, _ := Ip2Int(host.StartIP)
+	endIp, _ := Ip2Int(host.EndIP)
+	res := startIp + endIp
+	return fmt.Sprintf("%d%d%d", res, host.StartPort, host.EndPort)
+}
+
+type MacAddressAccessControlHost struct {
+	AccessControlHost
+	Mac string
+}
+
+func NewMacAddressAccessControlHost(macAddress string) (MacAddressAccessControlHost, error) {
+	var host MacAddressAccessControlHost
+
+	if !IsValidMacAddress(macAddress) {
+		return host, fmt.Errorf("invalid mac address '%s'", macAddress)
+	}
+
+	host = MacAddressAccessControlHost{
+		AccessControlHost: AccessControlHost{
+			Type: MacAddressHostType,
+		},
+		Mac: macAddress,
+	}
+
+	return host, nil
+}
+
+func (host MacAddressAccessControlHost) GetRef() string {
+	return host.Mac
+}
