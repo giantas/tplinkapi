@@ -389,7 +389,7 @@ func ParseAccessControlRules(body string) ([]AccessControlRule, error) {
 func ParseDhcpConfiguration(body string) (DhcpConfiguration, error) {
 	var cfg DhcpConfiguration
 	match := dhcpConfigurationRegex.FindStringSubmatch(body)
-	if len(match) != 10 {
+	if len(match) != 11 {
 		return cfg, fmt.Errorf("invalid data for DHCP configuration")
 	}
 	enabled := false
