@@ -33,6 +33,8 @@ var (
 	requestAccessControlHosts          = "[INTERNAL_HOST#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
 	requestAccessControlRules          = "[RULE#0,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[FIREWALL#0,0,0,0,0,0#0,0,0,0,0,0]1,2\r\nenable\r\ndefaultAction\r\n"
 	requestDeleteAccessControlRule     = "[RULE#%d,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n"
+	requestDhcpConfiguration           = "[LAN_HOST_CFG#1,0,0,0,0,0#0,0,0,0,0,0]0,0\r\n[LAN_IP_INTF#0,0,0,0,0,0#1,0,0,0,0,0]1,3\r\nIPInterfaceIPAddress\r\nIPInterfaceSubnetMask\r\n__ifName\r\n"
+	requestUpdateDhcpConfiguration     = "[LAN_HOST_CFG#1,0,0,0,0,0#0,0,0,0,0,0]0,9\r\nDHCPServerEnable=%d\r\nminAddress=%s\r\nmaxAddress=%s\r\nIPRouters=%s\r\nDHCPLeaseTime=%d\r\ndomainName=\r\nDNSServers=%s\r\nDHCPRelay=0\r\nX_TP_DhcpRelayServer=0.0.0.0\r\n"
 )
 
 type RouterService struct {
@@ -467,6 +469,32 @@ func (service RouterService) GetAccessControlRules() ([]AccessControlRule, error
 func (service RouterService) DeleteAccessControlRule(id int) error {
 	body := fmt.Sprintf(requestDeleteAccessControlRule, id)
 	path := service.GetAPIURL("4")
+	_, err := service.makeRequest(path, body)
+	return err
+}
+
+func (service RouterService) GetDhcpConfiguration() (DhcpConfiguration, error) {
+	var cfg DhcpConfiguration
+	body := requestDhcpConfiguration
+	path := service.GetAPIURL("1&6")
+	body, err := service.makeRequest(path, body)
+	if err != nil {
+		return cfg, err
+	}
+	return ParseDhcpConfiguration(body)
+}
+
+func (service RouterService) UpdateDhcpConfiguration(cfg DhcpConfiguration) error {
+	enabled := 0
+	if cfg.Enabled {
+		enabled = 1
+	}
+	dnsServers := strings.Join(cfg.DNSServers, ",")
+	body := fmt.Sprintf(
+		requestUpdateDhcpConfiguration,
+		enabled, cfg.MinAddress, cfg.MaxAddress, cfg.IPAddress, cfg.LeaseTime, dnsServers,
+	)
+	path := service.GetAPIURL("2")
 	_, err := service.makeRequest(path, body)
 	return err
 }

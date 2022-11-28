@@ -307,3 +307,13 @@ type AccessControlRule struct {
 	ExternalHostRef string
 	ScheduleRef     string
 }
+
+type DhcpConfiguration struct {
+	Enabled    bool
+	MinAddress string
+	MaxAddress string
+	SubnetMask string
+	DNSServers []string
+	LeaseTime  int
+	IPAddress  string
+}

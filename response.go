@@ -21,6 +21,7 @@ var (
 	getIdRegex               = regexp.MustCompile(`\[(\d+)\,[\,0]+\]`)
 	accessControlHostsRegex  = regexp.MustCompile(`\[(\d+)[\,\d+]+\]\d\srefCnt\=\d+\stype\=(\d)\sentryName\=(.*)\sisParentCtrl\=(\d)\smac\=([\w\:]*)\sIPStart\=([\d+\.])\sIPEnd\=([\d+\.])\sportStart\=(\d+)\sportEnd\=(\d+)\s`)
 	accessControleRulesRegex = regexp.MustCompile(`\[(\d+)[\,\d]+\]\d\senable\=(\d)\saction\=\d\sruleName\=(.*)\sisParentCtrl=\d\sdirection\=(\d)\sprotocol\=(\d)\ssetAlready\=\d\sinternalHostRef\=(.*)\sexternalHostRef\=(.*)\sscheduleRef\=(.*)\s`)
+	dhcpConfigurationRegex   = regexp.MustCompile(`DHCPServerEnable\=(\d)\s(.*\s){2}minAddress\=(.*)\smaxAddress\=(.*)\ssubnetMask\=(.*)\sDNSServers\=(.*)\s(.*\s){5}DHCPLeaseTime\=(\d+)\s(.*\s){4}IPInterfaceIPAddress\=(.*)\s`)
 )
 
 type Storage int
@@ -383,6 +384,37 @@ func ParseAccessControlRules(body string) ([]AccessControlRule, error) {
 		rules = append(rules, rule)
 	}
 	return rules, nil
+}
+
+func ParseDhcpConfiguration(body string) (DhcpConfiguration, error) {
+	var cfg DhcpConfiguration
+	match := dhcpConfigurationRegex.FindStringSubmatch(body)
+	if len(match) != 10 {
+		return cfg, fmt.Errorf("invalid data for DHCP configuration")
+	}
+	enabled := false
+	if match[1] == "1" {
+		enabled = true
+	}
+	minAddress := match[3]
+	maxAddress := match[4]
+	subnetMask := match[5]
+	dnsServers := strings.Split(match[6], ",")
+	leaseTime, err := strconv.Atoi(match[8])
+	if err != nil {
+		return cfg, err
+	}
+	ipAddress := match[10]
+	cfg = DhcpConfiguration{
+		Enabled:    enabled,
+		MinAddress: minAddress,
+		MaxAddress: maxAddress,
+		SubnetMask: subnetMask,
+		DNSServers: dnsServers,
+		LeaseTime:  leaseTime,
+		IPAddress:  ipAddress,
+	}
+	return cfg, err
 }
 
 func GetId(body string) (int, error) {
